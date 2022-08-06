@@ -10,6 +10,11 @@
 
         <div class="stats_container">
             <h2 class="stats">
+                Current sort: <span id="sort">None selected</span>
+                <br>
+                <span id="numbers">128 numbers</span>
+                <br>
+                <br>
                 Comparisons: <span id="compares">0</span>
                 <br>
                 Swaps: <span id="swaps">0</span>
@@ -28,74 +33,110 @@
 
         <script src="./scripts/sorts.js"></script>
 
+        <script src="./scripts/scripts.js"></script>
+
         <script>
+
+            // const script = scripts.all;
+            const script = [[sorts.cocktail,128]];
 
             const sort_container = document.getElementById('sort_container');
 
-            sort = new Sort(512,(arr,values) => {
+            for (let i = 0; i < 256; i++) {
+            
+                sort_container.insertAdjacentHTML("beforeend",`
+                    <div class="sort_element" id="element_${i}" style="height: calc( ( 100% / 256 ) * ${i+1} ); background-color: #fff; left: calc( ( 100% / 256 ) * ${i} ); width: calc( 100% / 256 )"></div>
+                `)
+            
+            }
 
-                let elements = [];
+            let run_script = (slot) => {
+                
+                return new Promise(async resolve => {
+
+                    while (sort_container.firstChild) sort_container.removeChild(sort_container.firstChild);
+
+                    sort = new Sort(slot[1],(arr,values) => {
                     
-                arr.forEach((v,i) => {
+                        let elements = [];
+
+                        arr.forEach((v,i) => {
+
+                            sort_container.insertAdjacentHTML("beforeend",`
+                                <div class="sort_element" id="element_${i}" style="height: calc( ( 100% / ${arr.length} ) * ${v} ); background-color: ${(arr.pointers[i]) ? "#f00" : "#fff"}; left: calc( ( 100% / ${arr.length} ) * ${i} ); width: calc( 100% / ${arr.length} )"></div>
+                            `)
+                        
+                            elements.push(document.getElementById(`element_${i}`).style);
+                        
+                        })
                     
-                    sort_container.insertAdjacentHTML("beforeend",`
-                        <div class="sort_element" id="element_${i}" style="height: calc( ( 100% / ${arr.length} ) * ${v} ); background-color: ${(arr.pointers[i]) ? "#f00" : "#fff"}; left: calc( ( 100% / ${arr.length} ) * ${i} ); width: calc( 100% / ${arr.length} )"></div>
-                    `)
+                        let value_spots = {
+                            compares: document.getElementById(`compares`),
+                            swaps: document.getElementById(`swaps`),
+                            reversals: document.getElementById(`reversals`),
+                            writes: document.getElementById(`writes`),
+                            writes_aux: document.getElementById(`writes_aux`)
+                        }
 
-                    elements.push(document.getElementById(`element_${i}`).style);
+                        document.getElementById(`sort`).innerHTML =  slot[0].name;
+                        document.getElementById(`numbers`).innerHTML =  `${slot[1]} number${slot[1] !== 1 ? 's' : ''}`;
+                    
+                        return async (i) => {
+                        
+                            value_spots.compares.innerHTML = values.compares;
+                            value_spots.swaps.innerHTML = values.swaps;
+                            value_spots.reversals.innerHTML = values.reversals;
+                            value_spots.writes.innerHTML = values.writes;
+                            value_spots.writes_aux.innerHTML = values.writes_aux;
+                        
+                            if (typeof i === "number") {
+                            
+                                const v = arr[i];
+                            
+                                if (arr.verifying) {
+                                
+                                    elements[i]["background-color"] = (arr.verified) ? "#0f0" : "#f00";
+                                
+                                }
+                                else {
+                                
+                                    elements[i].height = `calc( ( 100vh / ${arr.length} ) * ${v} )`;
+                                    elements[i]["background-color"] = (arr.pointers[i]) ? "#f00" : "#fff";
+                                
+                                }
+                            
+                            }
+                        
+                        }
+                    
+                    },resolve)
 
+                    window.addEventListener('keydown', (event) => {
+                        if (event.code === "Escape") sort.toggle_pause();
+                    })
+                    
+                    await sort.shuffle(0);
+
+                    sort.values.reset();
+                    setTimeout(() => {
+                        sort.initiate(slot[0].run);
+                    },1000)
+
+                });
+            }
+
+            let i = 0;
+
+            function start_script () {
+                if (script[i]) run_script(script[i]).then(() => {
+                    i++;
+                    start_script();
                 })
+            }
 
-                let value_spots = {
-                    compares: document.getElementById(`compares`),
-                    swaps: document.getElementById(`swaps`),
-                    reversals: document.getElementById(`reversals`),
-                    writes: document.getElementById(`writes`),
-                    writes_aux: document.getElementById(`writes_aux`)
-                }
-
-                return async (i) => {
-
-                    value_spots.compares.innerHTML = values.compares;
-                    value_spots.swaps.innerHTML = values.swaps;
-                    value_spots.reversals.innerHTML = values.reversals;
-                    value_spots.writes.innerHTML = values.writes;
-                    value_spots.writes_aux.innerHTML = values.writes_aux;
-
-                    if (typeof i === "number") {
-
-                        const v = arr[i];
-
-                        if (arr.verifying) {
-                        
-                            elements[i]["background-color"] = (arr.verified) ? "#0f0" : "#f00";
-                        
-                        }
-                        else {
-                        
-                            elements[i].height = `calc( ( 100vh / ${arr.length} ) * ${v} )`;
-                            elements[i]["background-color"] = (arr.pointers[i]) ? "#f00" : "#fff";
-                        
-                        }
-
-                    }
-
-                }
-
-            })
-
-            window.addEventListener('keydown', (event) => {
-                if (event.code === "Escape") sort.toggle_pause();
-            })
-
-            setTimeout(async () => {
-                await sort.shuffle();
-                // await sort.write.invert();
-                sort.values.reset();
-                setTimeout(() => {
-                    sort.initiate(sorts.quick);
-                },750)
-            }, 1500);
+            setTimeout(() => {
+                start_script();
+            },1500)
 
         </script>
 
