@@ -36,28 +36,37 @@ class Sort {
 
     queue = [];
 
-    interval;
+    interval = [];
 
     paused = true;
 
-    set_delay = function (delay) {
+    set_delay = async function (delay) {
+
         if (typeof delay === "number") this.delay = delay;
         if (this.paused) return;
-        this.interval.map(clearInterval);
-        for (let i = 0; i < Math.min(40,4/this.delay); i++) this.interval.push(setInterval(() => {if (this.queue[0] && typeof this.queue[0][0] === "function") this.queue.shift()[0]()},this.delay));
+
+        while (this.interval.length > 0) clearInterval(this.interval.shift());
+
+        for (let i = 0; i < 10/Math.max(0.1,this.delay); i++) {
+
+            this.interval.push(setInterval(() => {if (this.queue[0] && typeof this.queue[0][0] === "function") this.queue.shift()[0]()},Math.max(10,this.delay)));
+
+        }
+
     }
 
     stop = function () {
         this.paused = true;
+        while (this.interval.length > 0) clearInterval(this.interval.shift());
     }
 
     start = function () {
         this.paused = false;
-        this.set_delay;
+        this.set_delay();
     }
 
     end_sort = function () {
-        this.interval.map(clearInterval);
+        while (this.interval.length > 0) clearInterval(this.interval.shift());
         this.paused = true;
         this.arr.pointers.forEach((v,i) => {this.arr.pointers[i] = false});
         this.arr.forEach((v,i) => {this.update(i)});
@@ -79,6 +88,21 @@ class Sort {
         return new Promise((resolve,reject) => this.queue.push([resolve,reject]))
 
         // return new Promise(resolve => setTimeout(resolve, this.delay));
+    }
+
+    get = async function (i) {
+
+        this.arr.pointers[i] = true;
+
+        this.update(i);
+
+        await this.wait_delay();
+
+        this.arr.pointers[i] = false;
+
+        this.update(i);
+
+        return this.arr[i];
     }
 
     compare = {
@@ -235,12 +259,15 @@ class Sort {
             return this.parent.arr[a] === this.parent.arr[b];
         },
         verify: async function (i, end) {
-            for (i = Math.max(i || 0,0); i < Math.min(end || this.parent.arr.length-1,this.parent.arr.length-1); i++) if (await this.greater(i,i+1)) return false;
+            end = Math.min(Math.floor(end || this.parent.arr.length-1),this.parent.arr.length-1);
+            for (i = Math.max(Math.floor(i || 0),0); i < end; i++) if (await this.greater(i,i+1)) return false;
             return true;
         },
         min: async function (i, end) {
+
+            i = Math.max(Math.floor(i || 0),0);
     
-            let min = i || 0;
+            let min = i;
             end = Math.min((end || this.parent.arr.length - 1),this.parent.arr.length - 1);
     
             while (i <= end) {
@@ -252,8 +279,10 @@ class Sort {
     
         },
         max: async function (i, end) {
+
+            i = Math.max(Math.floor(i || 0),0);
     
-            let max = i || 0;
+            let max = i;
             end = Math.min((end || this.parent.arr.length - 1),this.parent.arr.length - 1);
     
             while (i <= end) {
@@ -262,6 +291,22 @@ class Sort {
             }
     
             return max;
+            
+        },
+        min_max: async function (i, end) {
+
+            i = Math.max(Math.floor(i || 0),0);
+    
+            let min = i, max = i;
+            end = Math.min((end || this.parent.arr.length - 1),this.parent.arr.length - 1);
+    
+            while (i <= end) {
+                if (await this.less(i,min)) min = i;
+                if (await this.greater(i,max)) max = i;
+                i++;
+            }
+    
+            return [min,max];
             
         }
     }
@@ -275,11 +320,7 @@ class Sort {
             this.parent.update(a);
             this.parent.update(b);
 
-            const _time = Date.now();
-
             await this.parent.wait_delay();
-
-            // console.log(Date.now()-_time,this.parent.delay)
 
             this.parent.values.swaps++;
             this.parent.values.writes += 2;
@@ -323,20 +364,36 @@ class Sort {
             this.parent.update(a);
         },
         invert: async function (start,end) {
-
-            this.parent.set_delay(1000 / this.parent.arr.length);
     
             start = Math.min(Math.max(0,Math.floor(start || 0)),this.parent.arr.length-1);
             end = Math.min(Math.max(0,Math.floor(end || this.parent.arr.length-1)),this.parent.arr.length-1);
     
-            this.parent.values.reverses++;
+            this.parent.values.reversals++;
     
             for (;start <= end;await this.swap(start,end),start++,end--);
     
+        },
+        randomize: async function (start,end) {
+    
+            start = Math.min(Math.max(0,Math.floor(start || 0)),this.parent.arr.length);
+            end = Math.min(Math.max(0,Math.floor(end || this.parent.arr.length)),this.parent.arr.length);
+        
+            let ran_i;
+        
+            for (let cur_i = start; cur_i < end; cur_i++) {
+        
+                ran_i = cur_i + Math.floor(Math.random() * (end - cur_i));
+                
+                await this.swap(cur_i,ran_i);
+        
+            }
+            
         }
     }
 
-    constructor (length, update) {
+    constructor (length, update, finish_func) {
+
+        length = Math.min(Math.max(Math.round(length || 128),4),512);
 
         this.arr = Array.from({length}, (v, i) => i + 1);
 
@@ -350,30 +407,70 @@ class Sort {
 
         this.arr.forEach((v,i) => {this.update(i)});
 
-        // setInterval(() => {this.toggle_pause()},1500);
+        this.finish_func = finish_func;
 
     }
 
     initiate = function (func) {
         this.running_sort = func;
         this.running_sort().then(() => {this.end_sort()}).catch(()=>{})
+        this.start();
     }
 
-    shuffle = async function () {
+    shuffle = async function (type) {
 
-        this.set_delay(1000 / this.arr.length);
+        this.set_delay(1500 / this.arr.length);
 
         this.start();
+
+        switch (type) {
+
+            default:
+                
+                await this.write.randomize();
+
+                break;
+
+            case 0:
+                
+                await this.write.randomize();
+
+                break;
+
+            case 1:
+
+                break;
+
+            case 2:
+
+                await this.write.invert();
+
+                break;
+
+            case 3:
+
+                this.set_delay(1000/(this.arr.length*Math.log2(this.arr.length)));
+
+                for (let i = 0; i <= this.arr.length - 1; i++) {
     
-        let ran_i;
+                    let parent = Math.floor((i-1)/2);
     
-        for (let cur_i = 0; cur_i < this.arr.length; cur_i++) {
+                    let cur_i = i;
     
-            ran_i = cur_i + Math.floor(Math.random() * (this.arr.length - cur_i));
-            
-            await this.write.swap(cur_i,ran_i);
+                    while (parent >= 0 && await this.compareind.greater(cur_i,parent)) {
     
+                        await this.write.swap(cur_i,parent);
+                        cur_i = parent;
+                        parent = Math.floor((cur_i-1)/2);
+    
+                    }
+    
+                }
+
+                break;
         }
+
+        this.stop();
         
     }
 
@@ -397,9 +494,17 @@ class Sort {
         
         this.arr.verifying = false;
 
+        this.stop();
+
         this.values.reload();
 
         this.arr.forEach((v,i) => {this.update(i)});
+
+        setTimeout(() => {
+
+            this.finish_func();
+
+        },2000)
 
     }
 
