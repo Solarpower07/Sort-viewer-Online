@@ -32,7 +32,7 @@
 
             const sort_container = document.getElementById('sort_container');
 
-            sort = new Sort(256,(arr,values) => {
+            sort = new Sort(512,(arr,values) => {
 
                 let elements = [];
                     
@@ -93,7 +93,7 @@
                 // await sort.write.invert();
                 sort.values.reset();
                 setTimeout(() => {
-                    sort.initiate(sorts.cocktail);
+                    sort.initiate(sorts.quick);
                 },750)
             }, 1500);
 

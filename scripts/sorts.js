@@ -1,7 +1,7 @@
 const sorts = {
     bubble: async function () {
 
-        sort.set_delay(1);
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
     
         for (let max = 0; max < sort.arr.length; max++) {
     
@@ -16,7 +16,7 @@ const sorts = {
     },
     cocktail: async function () {
 
-        sort.set_delay(1);
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
 
         for (let max = 0; max < sort.arr.length / 2; max++) {
     
@@ -37,6 +37,8 @@ const sorts = {
         }
     },
     quick: async function () {
+
+        sort.set_delay(10000/(sort.arr.length*Math.log2(sort.arr.length)));
 
         async function partition (l,r) {
         
@@ -88,15 +90,13 @@ const sorts = {
         
         }
 
-        sort.set_delay(1);
-
         await recursive(0, sort.arr.length - 1);
 
     },
 
     gnome: async function () {
 
-        sort.set_delay(1);
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
 
         for (let cur_i = 0; cur_i < sort.arr.length; cur_i++) {
 
@@ -115,7 +115,7 @@ const sorts = {
 
     cycle: async function () {
 
-        sort.set_delay(1);
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
 
         async function smaller (index) {
 
@@ -146,7 +146,7 @@ const sorts = {
 
     selection: async function () {
 
-        sort.set_delay(1);
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
 
         for (let cur_i = 0; cur_i < sort.arr.length; cur_i++) {
 
@@ -162,7 +162,7 @@ const sorts = {
 
     merge: async function () {
 
-        sort.set_delay(1);
+        sort.set_delay(10000/(sort.arr.length*Math.log2(sort.arr.length)));
 
         async function merge ([l1,r1],[l2,r2]) {
 

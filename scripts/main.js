@@ -36,30 +36,41 @@ class Sort {
 
     queue = [];
 
-    interval;
+    interval = [];
 
     paused = true;
 
-    set_delay = function (delay) {
+    set_delay = async function (delay) {
+
         if (typeof delay === "number") this.delay = delay;
         if (this.paused) return;
-        clearInterval(this.interval);
-        this.interval = setInterval(() => {if (this.queue[0] && typeof this.queue[0][0] === "function") this.queue.shift()[0]()},this.delay); //This timing is highly inaccurate!
+
+        while (this.interval.length > 0) clearInterval(this.interval.shift());
+
+        for (let i = 0; i < 10/Math.max(0.1,this.delay); i++) {
+
+            // const _time = performance.now();
+
+            this.interval.push(setInterval(() => {if (this.queue[0] && typeof this.queue[0][0] === "function") this.queue.shift()[0]()},10));
+    
+            // console.log((performance.now() - _time).toFixed(1));
+
+        }
+
     }
 
     stop = function () {
-        clearInterval(this.interval);
         this.paused = true;
+        while (this.interval.length > 0) clearInterval(this.interval.shift());
     }
 
     start = function () {
-        clearInterval(this.interval);
-        this.interval = setInterval(() => {if (this.queue[0] && typeof this.queue[0][0] === "function") this.queue.shift()[0]()},this.delay); //This timing is highly inaccurate!
         this.paused = false;
+        this.set_delay();
     }
 
     end_sort = function () {
-        clearInterval(this.interval);
+        while (this.interval.length > 0) clearInterval(this.interval.shift());
         this.paused = true;
         this.arr.pointers.forEach((v,i) => {this.arr.pointers[i] = false});
         this.arr.forEach((v,i) => {this.update(i)});
@@ -277,11 +288,11 @@ class Sort {
             this.parent.update(a);
             this.parent.update(b);
 
-            const _time = Date.now();
+            const _time = performance.now();
 
             await this.parent.wait_delay();
 
-            // console.log(Date.now()-_time,this.parent.delay)
+            console.log((performance.now() - _time).toFixed(1),this.parent.delay);
 
             this.parent.values.swaps++;
             this.parent.values.writes += 2;
@@ -351,8 +362,6 @@ class Sort {
         this.update = update(this.arr,this.values);
 
         this.arr.forEach((v,i) => {this.update(i)});
-
-        // setInterval(() => {this.toggle_pause()},1500);
 
     }
 
