@@ -38,7 +38,7 @@
         <script>
 
             // const script = scripts.all;
-            const script = [[sorts.cocktail,128]];
+            const script = [[sorts.insertion,128]];
 
             const sort_container = document.getElementById('sort_container');
 
@@ -78,7 +78,7 @@
                             writes_aux: document.getElementById(`writes_aux`)
                         }
 
-                        document.getElementById(`sort`).innerHTML =  slot[0].name;
+                        document.getElementById(`sort`).innerHTML =  'Shuffling...';
                         document.getElementById(`numbers`).innerHTML =  `${slot[1]} number${slot[1] !== 1 ? 's' : ''}`;
                     
                         return async (i) => {
@@ -116,9 +116,10 @@
                     })
                     
                     await sort.shuffle(0);
+                    document.getElementById(`sort`).innerHTML = '';
 
-                    sort.values.reset();
                     setTimeout(() => {
+                        document.getElementById(`sort`).innerHTML = slot[0].name;
                         sort.initiate(slot[0].run);
                     },1000)
 
@@ -132,6 +133,7 @@
                     i++;
                     start_script();
                 })
+                else document.getElementById(`sort`).innerHTML =  'All done!';
             }
 
             setTimeout(() => {

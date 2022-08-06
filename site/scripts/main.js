@@ -471,6 +471,8 @@ class Sort {
         }
 
         this.stop();
+
+        this.values.reset();
         
     }
 

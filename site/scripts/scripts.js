@@ -11,6 +11,9 @@ let scripts = {
         [sorts.maxheap,256], //Max heap
         [sorts.minheap,256], //Min heap
     ],
+    insertion: [
+        [sorts.insertion,128], //Insertion
+    ],
     merge: [
         [sorts.merge,256], //Merge
         [sorts.bottomup_merge,256], //Bottom-up Merge
