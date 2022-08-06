@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\Game Server\\backend\\testing\\sort_algorithms"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "Sort viewer Online"
+	}
+}
