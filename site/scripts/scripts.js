@@ -1,8 +1,12 @@
 let scripts = {
     exchange: [
         [sorts.bubble,128], //Bubble
+        [sorts.optimized_bubble,128], //Optimized Bubble
         [sorts.cocktail,128], //Cocktail
+        [sorts.optimized_cocktail,128], //Optimized Cocktail
         [sorts.gnome,128], //Gnome
+        [sorts.oddeven,256], //Odd-even
+        [sorts.comb,256], //Comb
         [sorts.quick,256], //Quick
     ],
     selection: [
@@ -16,7 +20,7 @@ let scripts = {
     ],
     merge: [
         [sorts.merge,256], //Merge
-        [sorts.bottomup_merge,256], //Bottom-up Merge
+        // [sorts.bottomup_merge,256], //Bottom-up Merge
     ],
     distribute: [
         [sorts.pigeonhole,256], //Pigeonhole
@@ -27,4 +31,4 @@ let scripts = {
     ]
 }
 
-scripts.all = [scripts.exchange,scripts.selection,scripts.merge,scripts.distribute,scripts.impractical].reduce((a,b) => {a.push(...b);return a});
+scripts.all = [scripts.exchange,scripts.selection,scripts.insertion,scripts.merge,scripts.distribute,scripts.impractical].reduce((a,b) => {a.push(...b);return a});

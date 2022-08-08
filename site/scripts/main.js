@@ -38,7 +38,11 @@ class Sort {
 
     interval = [];
 
+    time_paused = 0;
+
     paused = true;
+
+    cancelled = false;
 
     set_delay = async function (delay) {
 
@@ -66,21 +70,37 @@ class Sort {
     }
 
     end_sort = function () {
+
+        if (this.cancelled) return;
+        if (!this.running_sort) return;
+
+        this.cancelled = true;
+
         while (this.interval.length > 0) clearInterval(this.interval.shift());
+
         this.paused = true;
+
         this.arr.pointers.forEach((v,i) => {this.arr.pointers[i] = false});
         this.arr.forEach((v,i) => {this.update(i)});
-        if (this.running_sort) {
-            if (this.queue[0] && typeof this.queue[0][1] === "function") this.queue[0][1]();
-            this.running_sort = undefined;
-        }
+        
+        if (this.queue[0] && typeof this.queue[0][1] === "function") this.queue[0][1]();
+        this.running_sort = undefined;
+
         this.paused = false;
+
         this.verify();
+
     }
 
     toggle_pause = function () {
-        if (this.paused) this.start();
-        else this.stop();
+        if (this.paused && Date.now() - this.time_paused > 10) { //this.time_paused is to prevent weird double pause stuff
+            this.start();
+            this.time_paused = Date.now();
+        }
+        else if (!this.paused && Date.now() - this.time_paused > 10) {
+            this.stop();
+            this.time_paused = Date.now();
+        }
     }
 
     wait_delay = async () => {
@@ -413,7 +433,9 @@ class Sort {
 
     initiate = function (func) {
         this.running_sort = func;
-        this.running_sort().then(() => {this.end_sort()}).catch(()=>{})
+        this.running_sort().then(() => {this.end_sort()}).catch((e)=>{
+            if (!this.cancelled) console.error(e);
+        })
         this.start();
     }
 
@@ -425,29 +447,29 @@ class Sort {
 
         switch (type) {
 
-            default:
+            default: //Random
                 
                 await this.write.randomize();
 
                 break;
 
-            case 0:
+            case 0: //Random
                 
                 await this.write.randomize();
 
                 break;
 
-            case 1:
+            case 1: //Sorted
 
                 break;
 
-            case 2:
+            case 2: //Reversed
 
                 await this.write.invert();
 
                 break;
 
-            case 3:
+            case 3: //Heapified
 
                 this.set_delay(1000/(this.arr.length*Math.log2(this.arr.length)));
 
@@ -468,6 +490,30 @@ class Sort {
                 }
 
                 break;
+
+            case 4: //Mostly combed
+
+                this.set_delay(1000 / this.arr.length);
+                
+                await this.write.randomize(); //Randomize, then comb
+
+                this.set_delay(1000/(this.arr.length*Math.log2(this.arr.length)));
+        
+                let gap = this.arr.length;
+        
+                while (gap > Math.max(16,this.arr.length * 0.125)) {
+        
+                    if (gap > 1) gap = Math.floor(gap / 1.3);
+        
+                    for (let i = 0; i < this.arr.length - gap; i++) {
+        
+                        if (await this.compareind.greater(i, i + gap)) await this.write.swap(i, i + gap);
+        
+                    }
+                
+                }
+
+                break;
         }
 
         this.stop();
@@ -480,7 +526,7 @@ class Sort {
 
         this.values.temp_reset();
 
-        this.set_delay(1000 / this.arr.length);
+        this.set_delay(750 / this.arr.length);
 
         this.arr.verifying = true;
 
@@ -502,11 +548,7 @@ class Sort {
 
         this.arr.forEach((v,i) => {this.update(i)});
 
-        setTimeout(() => {
-
-            this.finish_func();
-
-        },2000)
+        this.finish_func();
 
     }
 
