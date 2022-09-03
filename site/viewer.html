@@ -52,20 +52,43 @@
             
             const params = new URLSearchParams(location.search);
 
-            const script = (params.get('sort'))
-            ? (sorts[params.get('sort')] ? [sorts[params.get('sort')],(!Number.isNaN(params.get('numbers')) ? Number(params.get('numbers')) : 256)] : scripts.all)
-            : (scripts[params.get('script')] || scripts.all);
+            // const script = (params.get('sort'))
+            // ? (sorts[params.get('sort')] ? [sorts[params.get('sort')],(!Number.isNaN(params.get('numbers')) ? Number(params.get('numbers')) : 256)] : scripts.all)
+            // : (scripts[params.get('script')] || scripts.all);
 
-            const shuffle = (params.get('shuffle') && !Number.isNaN(params.get('shuffle'))) ? Number(params.get('shuffle')) : 0;
+            const script = [[sorts.adaptive_pigeonhole,128]];
+
+            // const shuffle = (params.get('shuffle') && !Number.isNaN(params.get('shuffle'))) ? Number(params.get('shuffle')) : 0;
+
+            const shuffle = 6;
 
             const sort_container = document.getElementById('sort_container');
 
-            for (let i = 0; i < 256; i++) {
+                if (shuffle != 6) {
+                
+                for (let i = 0; i < 256; i++) {
+                
+                    sort_container.insertAdjacentHTML("beforeend",`
+                        <div class="sort_element" id="element_${i}" style="height: calc( ( 100% / 256 ) * ${i+1} ); background-color: #fff; left: calc( ( 100% / 256 ) * ${i} ); width: calc( 100% / 256 )"></div>
+                    `)
+                
+                }
+
+            }
+            else {
+
+                let arr = Array.from({length: 256});
             
-                sort_container.insertAdjacentHTML("beforeend",`
-                    <div class="sort_element" id="element_${i}" style="height: calc( ( 100% / 256 ) * ${i+1} ); background-color: #fff; left: calc( ( 100% / 256 ) * ${i} ); width: calc( 100% / 256 )"></div>
-                `)
-            
+                for (let i = 0; i < 256; i++) {
+
+                    let val = Math.ceil((i-1)/16)*16;
+                
+                    sort_container.insertAdjacentHTML("beforeend",`
+                        <div class="sort_element" id="element_${i}" style="height: calc( ( 100% / 256 ) * ${val} ); background-color: #fff; left: calc( ( 100% / 256 ) * ${i} ); width: calc( 100% / 256 )"></div>
+                    `)
+                    
+                }
+
             }
 
             let run_script = (slot) => {
@@ -127,7 +150,7 @@
                         
                         }
                     
-                    },resolve)
+                    },resolve,shuffle)
 
                     window.addEventListener('keydown', (event) => {
 
@@ -149,7 +172,7 @@
 
                     })
                     
-                    await sort.shuffle(shuffle).catch((e) => {
+                    await sort.shuffle().catch((e) => {
                         console.error(e);
                     })
 

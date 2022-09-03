@@ -5,7 +5,7 @@ let scripts = {
         [sorts.cocktail,128], //Cocktail
         [sorts.optimized_cocktail,128], //Optimized Cocktail
         [sorts.gnome,128], //Gnome
-        [sorts.oddeven,256], //Odd-even
+        [sorts.oddeven,128], //Odd-even
         [sorts.comb,256], //Comb
         [sorts.quick,256], //Quick
     ],
@@ -20,10 +20,12 @@ let scripts = {
     ],
     merge: [
         [sorts.merge,256], //Merge
-        // [sorts.bottomup_merge,256], //Bottom-up Merge
+        [sorts.insertion_merge,256], //Insertion Merge
+        [sorts.comb_merge,256], //Comb/Insertion Merge
     ],
     distribute: [
         [sorts.pigeonhole,256], //Pigeonhole
+        [sorts.adaptive_pigeonhole,128], //Adaptive Pigeonhole
     ],
     impractical: [
         [sorts.stooge,64], //Stooge

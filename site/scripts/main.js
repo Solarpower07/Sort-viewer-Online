@@ -411,11 +411,26 @@ class Sort {
         }
     }
 
-    constructor (length, update, finish_func) {
+    shuffle_type = 0;
+
+    constructor (length, update, finish_func, shuffle) {
 
         length = Math.min(Math.max(Math.round(length || 128),4),512);
 
-        this.arr = Array.from({length}, (v, i) => i + 1);
+        this.shuffle_type = shuffle || 0;
+
+        if (this.shuffle_type != 6) this.arr = Array.from({length}, (v, i) => i + 1);
+        else {
+
+            this.arr = Array.from({length});
+
+            let bucket_size = Math.ceil(length/16);
+    
+            for (let i = 0; i < length; i++) {
+                this.arr[i] = Math.ceil(i/bucket_size)*bucket_size;
+            }
+
+        }
 
         this.arr.pointers = this.arr.map(() => {return false})
 
@@ -439,13 +454,13 @@ class Sort {
         this.start();
     }
 
-    shuffle = async function (type) {
+    shuffle = async function () {
 
         this.set_delay(1500 / this.arr.length);
 
         this.start();
 
-        switch (type) {
+        switch (this.shuffle_type) {
 
             default: //Random
                 
@@ -512,6 +527,20 @@ class Sort {
                     }
                 
                 }
+
+                break;
+
+            case 5: //Random numbers
+
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,Math.random() * this.arr.length);
+                }
+
+                break;
+
+            case 6: //Many similar
+                
+                await this.write.randomize();
 
                 break;
         }
