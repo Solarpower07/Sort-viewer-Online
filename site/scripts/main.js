@@ -669,7 +669,7 @@ class Sort {
                 let bucket_size = Math.ceil(this.arr.length/16);
                 
                 for (let i = 0; i < this.arr.length; i++) {
-                    await this.write.write(i,(Math.floor(i/bucket_size)+1)*bucket_size);
+                    await this.write.write(i,((Math.floor(i/bucket_size)+1)*bucket_size)-1);
                 }
 
                 this.set_delay(1500 / this.arr.length);
