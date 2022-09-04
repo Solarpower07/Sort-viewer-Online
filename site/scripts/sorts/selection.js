@@ -20,16 +20,17 @@ sorts.selection = {
 sorts.cycle = {
     run: async function () {
 
-        sort.set_delay(15000/Math.pow(sort.arr.length,2));
+        sort.set_delay(8000/Math.pow(sort.arr.length,2));
 
-        async function smaller (index) {
-
-            const compare_val = index;
+        async function smaller (index,compare,ind) {
         
-            let count = 0;
+            let count = index;
 
             for (let i = index + 1; i < sort.arr.length; i++) {
-                if (await sort.compareind.less(i,compare_val)) count++;
+                await sort.compareind.equal(i,ind);
+                if (i < ind && sort.arr[i] === compare) console.log(i,ind,true);
+                if (i >= ind && sort.arr[i] === compare) console.log(i,ind,false);
+                if (i < ind ? sort.arr[i] <= compare : sort.arr[i] < compare) count++;
             }
         
             return count;
@@ -38,48 +39,65 @@ sorts.cycle = {
 
         for (let cur_i = 0; cur_i < sort.arr.length; cur_i++) {
 
-            let amnt_smaller = await smaller(cur_i);
+            let ind = await smaller(cur_i,sort.arr[cur_i],cur_i), cur_val = await sort.get(cur_i), changed = false;
         
-            while (sort.compare.greater(amnt_smaller+cur_i, cur_i)) {
-                await sort.write.swap(amnt_smaller+cur_i, cur_i);
-                amnt_smaller = await smaller(cur_i);
+            while (ind > cur_i) {
+                let temp = sort.arr[ind];
+                await sort.write.write(ind, cur_val);
+                cur_val = temp;
+                ind = await smaller(cur_i,cur_val,ind);
+                changed = true;
             }
+            
+            if (changed) await sort.write.write(cur_i,cur_val);
         
         }
 
     },
-    name: "Cycle Sort"
+    name: "Cycle Sort",
+    require_int: true
+}
+
+sorts.pigeonhole_cycle = {
+    run: async function () {
+
+        sort.set_delay(3000/sort.arr.length);
+
+        let min = 0;
+
+        for (let i = 0; i <= sort.arr.length; i++) {
+            if (sort.arr[i] < min) min = sort.arr[i];
+        }
+
+        for (let cur_i = 0; cur_i < sort.arr.length; cur_i++) {
+
+            let ind = sort.arr[cur_i] - min, cur_val = await sort.get(cur_i), changed = false;
+        
+            while (ind > cur_i) {
+                let temp = sort.arr[ind];
+                await sort.write.write(ind, cur_val);
+                cur_val = temp;
+                ind = cur_val - min;
+                changed = true;
+            }
+            
+            if (changed) await sort.write.write(cur_i,cur_val);
+        
+        }
+
+    },
+    name: "Pigeonhole-Cycle Hybrid Sort",
+    require_int: true
 }
 
 sorts.maxheap = {
     run: async function () {
 
-        sort.set_delay(2500/(sort.arr.length*Math.log2(sort.arr.length)));
+        sort.set_delay(3500/(sort.arr.length*Math.log2(sort.arr.length)));
 
         let end = sort.arr.length-1;
 
-        //Initial heapify
-        for (let i = 0; i <= end; i++) {
-
-            let parent = Math.floor((i-1)/2);
-
-            let cur_i = i;
-
-            while (parent >= 0 && await sort.compareind.greater(cur_i,parent)) {
-
-                await sort.write.swap(cur_i,parent);
-                cur_i = parent;
-                parent = Math.floor((cur_i-1)/2);
-
-            }
-
-        }
-
-        sort.set_delay(7500/(sort.arr.length*Math.log2(sort.arr.length)));
-
-        async function heapify () {
-    
-            let i = 0;
+        async function heapify (i) {
 
             let children = [(i*2)+1,(i*2)+2];
     
@@ -94,10 +112,19 @@ sorts.maxheap = {
 
         }
 
+        //Initial heapify
+        for (let i = end; i >= 0; i--) {
+            
+            await heapify(i);
+
+        }
+
+        sort.set_delay(5500/(sort.arr.length*Math.log2(sort.arr.length)));
+
         while (end > 0) {
             await sort.write.swap(0,end);
             end--;
-            await heapify();
+            await heapify(0);
         }
 
     },
@@ -107,32 +134,11 @@ sorts.maxheap = {
 sorts.minheap = {
     run: async function () {
 
-        sort.set_delay(2500/(sort.arr.length*Math.log2(sort.arr.length)));
+        sort.set_delay(3500/(sort.arr.length*Math.log2(sort.arr.length)));
 
         let end = sort.arr.length-1;
 
-        //Initial heapify
-        for (let i = 0; i <= end; i++) {
-
-            let parent = Math.floor((i-1)/2);
-
-            let cur_i = i;
-
-            while (parent >= 0 && await sort.compareind.less(cur_i,parent)) {
-
-                await sort.write.swap(cur_i,parent);
-                cur_i = parent;
-                parent = Math.floor((cur_i-1)/2);
-
-            }
-
-        }
-
-        sort.set_delay(7500/(sort.arr.length*Math.log2(sort.arr.length)));
-
-        async function heapify () {
-    
-            let i = 0;
+        async function heapify (i) {
 
             let children = [(i*2)+1,(i*2)+2];
     
@@ -147,10 +153,19 @@ sorts.minheap = {
 
         }
 
+        //Initial heapify
+        for (let i = end; i >= 0; i--) {
+            
+            await heapify(i);
+
+        }
+
+        sort.set_delay(5500/(sort.arr.length*Math.log2(sort.arr.length)));
+
         while (end > 0) {
             await sort.write.swap(0,end);
             end--;
-            await heapify();
+            await heapify(0);
         }
 
         sort.set_delay(1500/sort.arr.length);

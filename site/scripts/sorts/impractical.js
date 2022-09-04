@@ -1,7 +1,26 @@
+sorts.pancake = {
+    run: async function () {
+
+        sort.set_delay(5000/Math.pow(sort.arr.length,2));
+        
+        for (let max = sort.arr.length; max > 0; max--) {
+            
+            let biggest = await sort.compareind.max(0,max-1);
+
+            await sort.write.invert(0,biggest);
+
+            await sort.write.invert(0,max-1);
+        
+        }
+
+    },
+    name: "Pancake Sort"
+}
+
 sorts.stooge = {
     run: async function () {
 
-        sort.set_delay(5000/Math.pow(sort.arr.length,2.7));
+        sort.set_delay(3000/Math.pow(sort.arr.length,2.7));
 
         async function recursive (l,r) {
 

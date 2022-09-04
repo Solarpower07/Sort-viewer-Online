@@ -1,7 +1,7 @@
 sorts.bubble = {
     run: async function () {
 
-        sort.set_delay(15000/Math.pow(sort.arr.length,2));
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
         
         for (let max = 0; max < sort.arr.length; max++) {
         
@@ -20,7 +20,7 @@ sorts.bubble = {
 sorts.optimized_bubble = {
     run: async function () {
 
-        sort.set_delay(15000/Math.pow(sort.arr.length,2));
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
 
         let concurrent = 1;
         
@@ -44,7 +44,7 @@ sorts.optimized_bubble = {
 sorts.cocktail = {
     run: async function () {
 
-        sort.set_delay(15000/Math.pow(sort.arr.length,2));
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
 
         for (let max = 0; max < sort.arr.length / 2; max++) {
         
@@ -70,7 +70,7 @@ sorts.cocktail = {
 sorts.optimized_cocktail = {
     run: async function () {
 
-        sort.set_delay(15000/Math.pow(sort.arr.length,2));
+        sort.set_delay(10000/Math.pow(sort.arr.length,2));
 
         let lpoint = 0, rpoint = sort.arr.length - 1;
 
@@ -113,7 +113,7 @@ sorts.optimized_cocktail = {
 sorts.gnome = {
     run: async function () {
 
-        sort.set_delay(30000/Math.pow(sort.arr.length,2));
+        sort.set_delay(25000/Math.pow(sort.arr.length,2));
 
         for (let cur_i = 1; cur_i < sort.arr.length; cur_i++) {
 
@@ -196,7 +196,7 @@ sorts.quick = {
 sorts.oddeven = {
     run: async function () {
 
-        sort.set_delay(2000/Math.pow(sort.arr.length,2));
+        sort.set_delay(5000/Math.pow(sort.arr.length,2));
 
         let sorted = false;
 
