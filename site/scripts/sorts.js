@@ -1,4 +1,8 @@
-const sorts = {
+let sorts = {};
+
+/*
+let sorts = {
+
     bubble: {
         run: async function () {
 
@@ -17,6 +21,26 @@ const sorts = {
         },
         name: "Bubble Sort"
     },
+
+    comb: {
+        run: async function () {
+
+            sort.set_delay(15000/Math.pow(sort.arr.length,2));
+            
+            for (let max = 0; max < sort.arr.length; max++) {
+            
+                for (let cur_i = 0; cur_i < sort.arr.length - max - 1; cur_i++) {
+                
+                    if (await sort.compareind.greater(cur_i,cur_i+1)) await sort.write.swap(cur_i,cur_i+1);
+                
+                }
+            
+            }
+    
+        },
+        name: "Bubble Sort"
+    },
+
     cocktail: {
         run: async function () {
 
@@ -40,8 +64,9 @@ const sorts = {
             
             }
         },
-    name: "Cocktail Shaker Sort"
+        name: "Cocktail Shaker Sort"
     },
+
     quick: {
         run: async function () {
 
@@ -102,12 +127,13 @@ const sorts = {
         },
         name: "Quick Sort, L/R Pointers"
     },
+
     gnome: {
         run: async function () {
 
             sort.set_delay(30000/Math.pow(sort.arr.length,2));
 
-            for (let cur_i = 0; cur_i < sort.arr.length; cur_i++) {
+            for (let cur_i = 1; cur_i < sort.arr.length; cur_i++) {
 
                 let swap_i = cur_i;
             
@@ -123,6 +149,33 @@ const sorts = {
         },
         name: "Gnome Sort"
     },
+
+    insertion: {
+        run: async function () {
+
+            sort.set_delay(30000/Math.pow(sort.arr.length,2));
+
+            for (let cur_i = 1; cur_i < sort.arr.length; cur_i++) {
+
+                let replace = sort.arr[cur_i];
+
+                let i = cur_i - 1;
+            
+                while (i >= 0 && await sort.compare.less(replace, await sort.get(i))) {
+                
+                    await sort.write.overwrite(i + 1, i);
+                
+                    i--;
+                
+                }
+
+                await sort.write.write(i+1,replace);
+            
+            }
+        },
+        name: "Insertion Sort"
+    },
+
     cycle: {
         run: async function () {
 
@@ -156,6 +209,7 @@ const sorts = {
         },
         name: "Cycle Sort"
     },
+
     selection: {
         run: async function () {
 
@@ -174,6 +228,7 @@ const sorts = {
         },
         name: "Selection Sort"
     },
+
     merge: {
         run: async function () {
 
@@ -242,6 +297,7 @@ const sorts = {
         },
         name: "Merge Sort"
     },
+
     bottomup_merge: {
         run: async function () {
 
@@ -310,6 +366,7 @@ const sorts = {
         },
         name: "Bottom-up Merge Sort"
     },
+
     stooge: {
         run: async function () {
 
@@ -335,6 +392,7 @@ const sorts = {
         },
         name: "Stooge Sort"
     },
+
     bogo: {
         run: async function () {
 
@@ -347,6 +405,7 @@ const sorts = {
         },
         name: "Bogo Sort"
     },
+
     maxheap: {
         run: async function () {
 
@@ -399,6 +458,7 @@ const sorts = {
         },
         name: "Max Heap Sort"
     },
+
     minheap: {
         run: async function () {
 
@@ -455,6 +515,7 @@ const sorts = {
         },
         name: "Min Heap Sort"
     },
+
     pigeonhole: {
         run: async function () {
 
@@ -481,4 +542,6 @@ const sorts = {
         },
         name: "Pigeonhole Sort"
     },
+
 }
+*/

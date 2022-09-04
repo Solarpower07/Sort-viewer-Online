@@ -1,6 +1,51 @@
 class Sort {
 
     arr;
+    
+    audiosrc = new AudioContext();
+
+    oscillator = [];
+
+    sound_volume = 0.6;
+
+    sound_end = 0.045;
+
+    sound_pitch_high = 1500;
+
+    sound_pitch_low = 60;
+
+    play_tone = function (num,slot) {
+
+        if (typeof slot === 'number') {
+
+            this.oscillator[slot].volume.gain.value = this.sound_volume / 2;
+    
+            this.oscillator[slot].frequency.value = (((num*num)/(this.arr.length*this.arr.length))*this.sound_pitch_high)+this.sound_pitch_low;
+
+        } else {
+
+            this.oscillator[0].volume.gain.value = this.sound_volume / 2;
+    
+            this.oscillator[0].frequency.value = (((num*num)/(this.arr.length*this.arr.length))*this.sound_pitch_high)+this.sound_pitch_low;
+    
+            this.oscillator[1].frequency.value = 0;
+
+        }
+
+    }
+
+    stop_tones = function () {
+    
+        this.oscillator[0].frequency.value = 0;
+        this.oscillator[1].frequency.value = 0;
+
+        this.oscillator[0].volume.gain.exponentialRampToValueAtTime(0.0001,this.audiosrc.currentTime + this.sound_end);
+        this.oscillator[0].volume.gain.setTargetAtTime(0,this.audiosrc.currentTime+this.sound_end,this.audiosrc.currentTime+this.sound_end+0.003);
+
+        this.oscillator[1].volume.gain.exponentialRampToValueAtTime(0.0001,this.audiosrc.currentTime + this.sound_end);
+        this.oscillator[1].volume.gain.setTargetAtTime(0,this.audiosrc.currentTime+this.sound_end,this.audiosrc.currentTime+this.sound_end+0.003);
+
+    }
 
     delay = 15;
 
@@ -10,6 +55,7 @@ class Sort {
         reversals: 0,
         writes: 0,
         writes_aux: 0,
+        accesses: 0,
         reset: function () {
             for (const v of Object.keys(this)) {
                 if (!["parent","reset","temp","temp_reset","reload"].includes(v)) this[v] = 0;
@@ -38,7 +84,11 @@ class Sort {
 
     interval = [];
 
+    time_paused = 0;
+
     paused = true;
+
+    cancelled = false;
 
     set_delay = async function (delay) {
 
@@ -47,7 +97,7 @@ class Sort {
 
         while (this.interval.length > 0) clearInterval(this.interval.shift());
 
-        for (let i = 0; i < 10/Math.max(0.1,this.delay); i++) {
+        for (let i = 0; i < 10/Math.max(0.05,this.delay); i++) {
 
             this.interval.push(setInterval(() => {if (this.queue[0] && typeof this.queue[0][0] === "function") this.queue.shift()[0]()},Math.max(10,this.delay)));
 
@@ -56,6 +106,7 @@ class Sort {
     }
 
     stop = function () {
+        this.stop_tones();
         this.paused = true;
         while (this.interval.length > 0) clearInterval(this.interval.shift());
     }
@@ -66,21 +117,41 @@ class Sort {
     }
 
     end_sort = function () {
+
+        if (this.cancelled || !this.running_sort) {
+            this.stop_tones();
+            this.oscillator[0].stop();
+            this.oscillator[1].stop();
+            return;
+        }
+
+        this.cancelled = true;
+
         while (this.interval.length > 0) clearInterval(this.interval.shift());
+
         this.paused = true;
+
         this.arr.pointers.forEach((v,i) => {this.arr.pointers[i] = false});
         this.arr.forEach((v,i) => {this.update(i)});
-        if (this.running_sort) {
-            if (this.queue[0] && typeof this.queue[0][1] === "function") this.queue[0][1]();
-            this.running_sort = undefined;
-        }
+        
+        if (this.queue[0] && typeof this.queue[0][1] === "function") this.queue[0][1]();
+        this.running_sort = undefined;
+
         this.paused = false;
+
         this.verify();
+
     }
 
     toggle_pause = function () {
-        if (this.paused) this.start();
-        else this.stop();
+        if (this.paused && Date.now() - this.time_paused > 10) { //this.time_paused is to prevent weird double pause stuff
+            this.start();
+            this.time_paused = Date.now();
+        }
+        else if (!this.paused && Date.now() - this.time_paused > 10) {
+            this.stop();
+            this.time_paused = Date.now();
+        }
     }
 
     wait_delay = async () => {
@@ -92,11 +163,15 @@ class Sort {
 
     get = async function (i) {
 
+        this.play_tone(this.arr[i]);
+
         this.arr.pointers[i] = true;
 
         this.update(i);
 
         await this.wait_delay();
+
+        this.values.accesses++;
 
         this.arr.pointers[i] = false;
 
@@ -160,6 +235,9 @@ class Sort {
     compareind = {
         greater: async function (a,b) {
 
+            this.parent.play_tone(this.parent.arr[a],0);
+            this.parent.play_tone(this.parent.arr[b],1);
+
             this.parent.arr.pointers[a] = true;
             this.parent.arr.pointers[b] = true;
 
@@ -179,6 +257,9 @@ class Sort {
             return this.parent.arr[a] > this.parent.arr[b];
         },
         less: async function (a,b) {
+
+            this.parent.play_tone(this.parent.arr[a],0);
+            this.parent.play_tone(this.parent.arr[b],1);
 
             this.parent.arr.pointers[a] = true;
             this.parent.arr.pointers[b] = true;
@@ -200,6 +281,9 @@ class Sort {
         },
         greater_eq: async function (a,b) {
 
+            this.parent.play_tone(this.parent.arr[a],0);
+            this.parent.play_tone(this.parent.arr[b],1);
+
             this.parent.arr.pointers[a] = true;
             this.parent.arr.pointers[b] = true;
 
@@ -220,6 +304,9 @@ class Sort {
         },
         less_eq: async function (a,b) {
 
+            this.parent.play_tone(this.parent.arr[a],0);
+            this.parent.play_tone(this.parent.arr[b],1);
+
             this.parent.arr.pointers[a] = true;
             this.parent.arr.pointers[b] = true;
 
@@ -239,6 +326,9 @@ class Sort {
             return this.parent.arr[a] <= this.parent.arr[b];
         },
         equal: async function (a,b) {
+
+            this.parent.play_tone(this.parent.arr[a],0);
+            this.parent.play_tone(this.parent.arr[b],1);
 
             this.parent.arr.pointers[a] = true;
             this.parent.arr.pointers[b] = true;
@@ -268,7 +358,7 @@ class Sort {
             i = Math.max(Math.floor(i || 0),0);
     
             let min = i;
-            end = Math.min((end || this.parent.arr.length - 1),this.parent.arr.length - 1);
+            end = Math.min(Math.max(0,Math.floor(typeof end == "number" ? end : this.parent.arr.length-1)),this.parent.arr.length-1);
     
             while (i <= end) {
                 if (await this.less(i,min)) min = i;
@@ -283,7 +373,7 @@ class Sort {
             i = Math.max(Math.floor(i || 0),0);
     
             let max = i;
-            end = Math.min((end || this.parent.arr.length - 1),this.parent.arr.length - 1);
+            end = Math.min(Math.max(0,Math.floor(typeof end == "number" ? end : this.parent.arr.length-1)),this.parent.arr.length-1);
     
             while (i <= end) {
                 if (await this.greater(i,max)) max = i;
@@ -298,11 +388,11 @@ class Sort {
             i = Math.max(Math.floor(i || 0),0);
     
             let min = i, max = i;
-            end = Math.min((end || this.parent.arr.length - 1),this.parent.arr.length - 1);
+            end = Math.min(Math.max(0,Math.floor(typeof end == "number" ? end : this.parent.arr.length-1)),this.parent.arr.length-1);
     
             while (i <= end) {
                 if (await this.less(i,min)) min = i;
-                if (await this.greater(i,max)) max = i;
+                else if (await this.greater(i,max)) max = i;
                 i++;
             }
     
@@ -313,6 +403,9 @@ class Sort {
 
     write = {
         swap: async function (a,b) {
+
+            this.parent.play_tone(this.parent.arr[a],0);
+            this.parent.play_tone(this.parent.arr[b],1);
 
             this.parent.arr.pointers[a] = true;
             this.parent.arr.pointers[b] = true;
@@ -335,6 +428,8 @@ class Sort {
         },
         write: async function (a,b) {
 
+            this.parent.play_tone(b);
+
             this.parent.arr.pointers[a] = true;
 
             this.parent.update(a);
@@ -349,6 +444,8 @@ class Sort {
             this.parent.update(a);
         },
         overwrite: async function (a,b) {
+
+            this.parent.play_tone(b);
 
             this.parent.arr.pointers[a] = true;
 
@@ -366,7 +463,7 @@ class Sort {
         invert: async function (start,end) {
     
             start = Math.min(Math.max(0,Math.floor(start || 0)),this.parent.arr.length-1);
-            end = Math.min(Math.max(0,Math.floor(end || this.parent.arr.length-1)),this.parent.arr.length-1);
+            end = Math.min(Math.max(0,Math.floor(typeof end == "number" ? end : this.parent.arr.length-1)),this.parent.arr.length-1);
     
             this.parent.values.reversals++;
     
@@ -395,7 +492,7 @@ class Sort {
 
         length = Math.min(Math.max(Math.round(length || 128),4),512);
 
-        this.arr = Array.from({length}, (v, i) => i + 1);
+        this.arr = Array.from({length}, (v, i) => i);
 
         this.arr.pointers = this.arr.map(() => {return false})
 
@@ -409,11 +506,50 @@ class Sort {
 
         this.finish_func = finish_func;
 
+
+        //Sound oscillators
+
+        const oscillator_wave = 'triangle';
+
+        //Oscillator 1
+
+        this.oscillator.push(this.audiosrc.createOscillator());
+
+        this.oscillator[0].volume = this.audiosrc.createGain();
+
+        this.oscillator[0].connect(this.oscillator[0].volume);
+
+        this.oscillator[0].volume.connect(this.audiosrc.destination);
+
+        this.oscillator[0].volume.gain.value = 0;
+
+        this.oscillator[0].type = oscillator_wave;
+
+        this.oscillator[0].start();
+
+        //Oscillator 2
+
+        this.oscillator.push(this.audiosrc.createOscillator());
+
+        this.oscillator[1].volume = this.audiosrc.createGain();
+
+        this.oscillator[1].connect(this.oscillator[1].volume);
+
+        this.oscillator[1].volume.connect(this.audiosrc.destination);
+
+        this.oscillator[1].volume.gain.value = 0;
+
+        this.oscillator[1].type = oscillator_wave;
+
+        this.oscillator[1].start();
+
     }
 
-    initiate = function (func) {
+    initiate = function (func,{base} = {}) {
         this.running_sort = func;
-        this.running_sort().then(() => {this.end_sort()}).catch(()=>{})
+        this.running_sort(base).then(() => {this.end_sort()}).catch((e)=>{
+            if (!this.cancelled) console.error(e);
+        })
         this.start();
     }
 
@@ -425,52 +561,126 @@ class Sort {
 
         switch (type) {
 
-            default:
+            default: //Random
                 
                 await this.write.randomize();
 
                 break;
 
-            case 0:
+            case 0: //Random
                 
                 await this.write.randomize();
 
                 break;
 
-            case 1:
+            case 1: //Sorted
 
                 break;
 
-            case 2:
+            case 2: //Reversed
 
                 await this.write.invert();
 
                 break;
 
-            case 3:
+            case 3: //Heapified
+
+                this.set_delay(3500/(this.arr.length*Math.log2(this.arr.length)));
+
+                for (let x = this.arr.length - 1; x >= 0; x--) {
+
+                    let i = x;
+
+                    let children = [(i*2)+1,(i*2)+2];
+            
+                    while (children[0] < this.arr.length && (await this.compareind.less(i,children[0]) || (children[1] < this.arr.length ? await this.compareind.less(i,children[1]) : false))) {
+                    
+                        let greater = (children[1] < this.arr.length && await this.compareind.less(...children)) ? children[1] : children[0];
+                        await this.write.swap(i,greater);
+                        i = greater;
+                        children = [(i*2)+1,(i*2)+2];
+                    
+                    }
+        
+                }
+
+                break;
+
+            case 4: //Mostly combed
+
+                this.set_delay(1000 / this.arr.length);
+                
+                await this.write.randomize(); //Randomize, then comb
 
                 this.set_delay(1000/(this.arr.length*Math.log2(this.arr.length)));
-
-                for (let i = 0; i <= this.arr.length - 1; i++) {
-    
-                    let parent = Math.floor((i-1)/2);
-    
-                    let cur_i = i;
-    
-                    while (parent >= 0 && await this.compareind.greater(cur_i,parent)) {
-    
-                        await this.write.swap(cur_i,parent);
-                        cur_i = parent;
-                        parent = Math.floor((cur_i-1)/2);
-    
+        
+                let gap = this.arr.length;
+        
+                while (gap > Math.max(16,this.arr.length * 0.125)) {
+        
+                    if (gap > 1) gap = Math.floor(gap / 1.3);
+        
+                    for (let i = 0; i < this.arr.length - gap; i++) {
+        
+                        if (await this.compareind.greater(i, i + gap)) await this.write.swap(i, i + gap);
+        
                     }
-    
+                
                 }
+
+                break;
+
+            case 5: //Final radix pass
+
+                this.set_delay(1250/this.arr.length);
+
+                let base = Math.floor(this.arr.length / 2);
+    
+                let buckets = Array.from({length: base}, () => {return []});
+        
+                for (let i = 0; i < this.arr.length; i++) {
+                    buckets[Math.floor((await this.get(i))) % base].push(this.arr[i]);
+                    this.values.writes_aux++;
+                }
+    
+                const combined = buckets.reduce((a,b) => {return a.concat(b)});
+                
+                for (let i = 0; i < combined.length; i++) {
+                    await this.write.write(i,combined[i]);
+                }
+
+                break;
+
+            case 6: //Randomized inputs
+
+                this.set_delay(2000/this.arr.length);
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,Math.random()*(this.arr.length-1));
+                }
+
+                break;
+
+            case 7: //Many similar
+
+                this.set_delay(1000 / this.arr.length);
+
+                let bucket_size = Math.ceil(this.arr.length/16);
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,(Math.floor(i/bucket_size)+1)*bucket_size);
+                }
+
+                this.set_delay(1500 / this.arr.length);
+
+                await this.write.randomize();
 
                 break;
         }
 
         this.stop();
+
+        this.values.reset();
         
     }
 
@@ -478,7 +688,7 @@ class Sort {
 
         this.values.temp_reset();
 
-        this.set_delay(1000 / this.arr.length);
+        this.set_delay(750 / this.arr.length);
 
         this.arr.verifying = true;
 
@@ -500,11 +710,7 @@ class Sort {
 
         this.arr.forEach((v,i) => {this.update(i)});
 
-        setTimeout(() => {
-
-            this.finish_func();
-
-        },2000)
+        this.finish_func();
 
     }
 

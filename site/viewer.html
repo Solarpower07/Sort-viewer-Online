@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="./viewer.css" rel="stylesheet">
+        <title>Viewer - Sort Viewer Online</title>
+    </head>
+    <body>
+
+        <div id="sort_container"></div>
+
+        <div class="stats_container">
+            <h2 class="stats">
+                Current sort: <span id="sort">None selected</span>
+                <br>
+                <span id="numbers">256 numbers</span>
+                <br>
+                <br>
+                Comparisons: <span id="compares">0</span>
+                <br>
+                Swaps: <span id="swaps">0</span>
+                <br>
+                Reversals: <span id="reversals">0</span>
+                <br>
+                Estimated Real Time: <span id="time">0ms</span>
+                <br>
+                <br>
+                Writes to main array: <span id="writes">0</span>
+                <br>
+                Writes to auxillary array(s): <span id="writes_aux">0</span>
+                <br>
+            </h2>
+        </div>
+
+        <script src="./scripts/main.js" type="text/javascript"></script>
+
+        <script src="./scripts/sorts.js"></script>
+        <script src="./scripts/sorts/exchange.js"></script>
+        <script src="./scripts/sorts/selection.js"></script>
+        <script src="./scripts/sorts/insertion.js"></script>
+        <script src="./scripts/sorts/merge.js"></script>
+        <script src="./scripts/sorts/distribute.js"></script>
+        <script src="./scripts/sorts/impractical.js"></script>
+        <script src="./scripts/sorts/misc.js"></script>
+
+        <script src="./scripts/scripts.js"></script>
+
+        <script>
+
+            window.addEventListener('keydown', (event) => {
+
+                if (event.code === "Escape") location.href = './index.html';
+
+            })
+            
+            const params = new URLSearchParams(location.search);
+
+            const script = (params.get('sort'))
+            ? (sorts[params.get('sort')] ? [sorts[params.get('sort')],(!Number.isNaN(params.get('numbers')) ? Number(params.get('numbers')) : 256)] : scripts.all)
+            : (scripts[params.get('script')] || scripts.all);
+
+            const shuffle = (params.get('shuffle') && !Number.isNaN(params.get('shuffle'))) ? Number(params.get('shuffle')) : 0;
+
+            // const script = [[sorts.maxheap,128]], shuffle = 3;
+
+            const sort_container = document.getElementById('sort_container');
+
+            for (let i = 0; i < 256; i++) {
+        
+                sort_container.insertAdjacentHTML("beforeend",`
+                    <div class="sort_element" id="element_${i}" style="height: ${((i+1) / 256) * 100}vh; background-color: #fff; left: ${(i / 256) * 100}vw; width: 0.390625vw"></div>
+                `)
+                
+            }
+
+            let run_script = (slot) => {
+                
+                return new Promise(async resolve => {
+
+                    while (sort_container.firstChild) sort_container.removeChild(sort_container.firstChild);
+
+                    sort = new Sort(slot[1],(arr,values) => {
+                    
+                        let elements = [];
+
+                        arr.forEach((v,i) => {
+
+                            sort_container.insertAdjacentHTML("beforeend",`
+                                <div class="sort_element" id="element_${i}" style="height: ${((v+1) / arr.length) * 100}vh; background-color: ${(arr.pointers[i]) ? "#f00" : "#fff"}; left: ${(i / arr.length) * 100}vw; width: ${100 / arr.length}vw"></div>
+                            `)
+                        
+                            elements.push(document.getElementById(`element_${i}`).style);
+                        
+                        })
+                    
+                        let value_spots = {
+                            compares: document.getElementById(`compares`),
+                            swaps: document.getElementById(`swaps`),
+                            reversals: document.getElementById(`reversals`),
+                            time: document.getElementById(`time`),
+                            writes: document.getElementById(`writes`),
+                            writes_aux: document.getElementById(`writes_aux`)
+                        }
+
+                        document.getElementById(`sort`).innerHTML =  'Shuffling...';
+                        document.getElementById(`numbers`).innerHTML =  `${slot[1]} number${slot[1] !== 1 ? 's' : ''}`;
+                    
+                        return async (i) => {
+                        
+                            value_spots.compares.innerHTML = values.compares;
+                            value_spots.swaps.innerHTML = values.swaps;
+                            value_spots.reversals.innerHTML = values.reversals;
+                            value_spots.writes.innerHTML = values.writes;
+                            value_spots.writes_aux.innerHTML = values.writes_aux;
+
+                            let est_time = ((values.compares * 0.0000028) + ((values.writes - (values.swaps * 2)) * 0.0000021) + (values.writes_aux * 0.0000017) + (values.accesses * 0.0000011) + (values.swaps * 0.0000038)) * 0.25;
+
+                            value_spots.time.innerHTML = est_time < 1 ? (est_time*1000).toFixed(3) + 'ms' : est_time.toFixed(3) + 's';
+                        
+                            if (typeof i === "number") {
+                            
+                                const v = arr[i];
+                            
+                                if (arr.verifying) {
+                                
+                                    elements[i]["background-color"] = (arr.verified) ? "#0f0" : "#f00";
+                                
+                                }
+                                else {
+                                
+                                    elements[i].height = ((v+1) / arr.length) * 100 + 'vh';
+                                    elements[i]["background-color"] = (arr.pointers[i]) ? "#f00" : "#fff";
+                                
+                                }
+                            
+                            }
+                        
+                        }
+                    
+                    },resolve)
+
+                    window.addEventListener('keydown', (event) => {
+
+                        switch (event.code) {
+
+                            case "Enter":
+                                sort.end_sort();
+                                break;
+
+                            case "NumpadEnter":
+                                sort.end_sort();
+                                break;
+
+                            case "Space":
+                                sort.toggle_pause();
+                                break;
+
+                        }
+
+                    })
+                    
+                    await sort.shuffle(shuffle).catch((e) => {
+                        console.error(e);
+                    })
+
+                    document.getElementById(`sort`).innerHTML = '';
+
+                    setTimeout(() => {
+                        document.getElementById(`sort`).innerHTML = (slot[0].name + (slot[0].base ? `, Base ${slot[0].base}` : ''));
+                        sort.initiate(slot[0].run, {base: slot[0].base});
+                    },1000)
+
+                });
+            }
+
+            let i = 0;
+
+            function start_script () {
+
+                if (script[i]) {
+
+                    if (script[i][0].require_int && (shuffle === 6 || shuffle === 7)) {
+                        i++;
+                        start_script();
+                        return;
+                    }
+
+                    run_script(script[i]).then(() => {
+
+                        if (!script[i+1]) {
+                            document.getElementById(`sort`).innerHTML =  'All done!';
+                            return;
+                        }
+
+                        document.getElementById(`sort`).innerHTML =  '';
+
+                        setTimeout(() => {
+                            i++;
+                            start_script();
+                        },2000)
+
+                    })
+                }
+                else document.getElementById(`sort`).innerHTML =  'All done!';
+            }
+
+            setTimeout(() => {
+                start_script();
+            },1500)
+
+        </script>
+
+    </body>
+</html>
