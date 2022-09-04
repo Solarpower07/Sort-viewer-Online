@@ -56,6 +56,7 @@ class Sort {
         writes: 0,
         writes_aux: 0,
         accesses: 0,
+        delay: 0,
         reset: function () {
             for (const v of Object.keys(this)) {
                 if (!["parent","reset","temp","temp_reset","reload"].includes(v)) this[v] = 0;

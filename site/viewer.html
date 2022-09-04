@@ -60,7 +60,7 @@
 
             const shuffle = (params.get('shuffle') && !Number.isNaN(params.get('shuffle'))) ? Number(params.get('shuffle')) : 0;
 
-            // const script = [[sorts.maxheap,128]], shuffle = 3;
+            // const script = [[sorts.time,256]], shuffle = 0;
 
             const sort_container = document.getElementById('sort_container');
 
@@ -112,7 +112,7 @@
                             value_spots.writes.innerHTML = values.writes;
                             value_spots.writes_aux.innerHTML = values.writes_aux;
 
-                            let est_time = ((values.compares * 0.0000028) + ((values.writes - (values.swaps * 2)) * 0.0000021) + (values.writes_aux * 0.0000017) + (values.accesses * 0.0000011) + (values.swaps * 0.0000038)) * 0.25;
+                            let est_time = ((values.compares * 0.0000028) + ((values.writes - (values.swaps * 2)) * 0.0000021) + (values.writes_aux * 0.0000017) + (values.accesses * 0.0000011) + (values.swaps * 0.0000038) + (values.delay * 4)) * 0.25;
 
                             value_spots.time.innerHTML = est_time < 1 ? (est_time*1000).toFixed(3) + 'ms' : est_time.toFixed(3) + 's';
                         

@@ -34,6 +34,7 @@ let scripts = {
     ],
     impractical: [
         [sorts.pancake,128], //Pancake
+        [sorts.time,256], //Pancake
         [sorts.stooge,64], //Stooge
         [sorts.bogo,6], //Bogo
     ]
