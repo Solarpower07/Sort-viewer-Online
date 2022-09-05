@@ -17,7 +17,7 @@ sorts.insertion = {
             
             }
 
-            await sort.write.write(i+1,replace);
+            if (i+1 !== cur_i) await sort.write.write(i+1,replace);
         
         }
     },
@@ -60,7 +60,7 @@ sorts.binary_insertion = {
             
             }
 
-            await sort.write.write(search_i,replace);
+            if (i+1 !== cur_i) await sort.write.write(search_i,replace);
         
         }
     },
@@ -92,7 +92,7 @@ sorts.shell = {
                 
                 }
     
-                await sort.write.write(i+gap,replace);
+                if (i+1 !== cur_i) await sort.write.write(i+gap,replace);
             
             }
 
@@ -143,7 +143,7 @@ sorts.binary_shell = {
                 
                 }
     
-                await sort.write.write(search_i,replace);
+                if (i !== cur_i) await sort.write.write(search_i,replace);
             
             }
 
