@@ -60,7 +60,7 @@
 
             const shuffle = (params.get('shuffle') && !Number.isNaN(params.get('shuffle'))) ? Number(params.get('shuffle')) : 0;
 
-            // const script = [[sorts.time,256]], shuffle = 0;
+            // const script = [[sorts.comb,1024]], shuffle = 0;
 
             const sort_container = document.getElementById('sort_container');
 
@@ -106,15 +106,15 @@
                     
                         return async (i) => {
                         
-                            value_spots.compares.innerHTML = values.compares;
-                            value_spots.swaps.innerHTML = values.swaps;
-                            value_spots.reversals.innerHTML = values.reversals;
-                            value_spots.writes.innerHTML = values.writes;
-                            value_spots.writes_aux.innerHTML = values.writes_aux;
+                            value_spots.compares.textContent = values.compares;
+                            value_spots.swaps.textContent = values.swaps;
+                            value_spots.reversals.textContent = values.reversals;
+                            value_spots.writes.textContent = values.writes;
+                            value_spots.writes_aux.textContent = values.writes_aux;
 
                             let est_time = ((values.compares * 0.000000106) + ((values.writes - (values.swaps * 2)) * 0.000000118) + (values.writes_aux * 0.000000125) + (values.accesses * 0.000000045) + (values.swaps * 0.00000040) + (values.delay / 1)) * 1;
 
-                            value_spots.time.innerHTML = est_time < 1 ? (est_time*1000).toFixed(3) + 'ms' : est_time.toFixed(3) + 's';
+                            value_spots.time.textContent = est_time < 1 ? (est_time*1000).toFixed(3) + 'ms' : est_time.toFixed(3) + 's';
                         
                             if (typeof i === "number") {
                             

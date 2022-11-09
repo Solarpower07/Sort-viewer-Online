@@ -491,7 +491,7 @@ class Sort {
 
     constructor (length, update, finish_func) {
 
-        length = Math.min(Math.max(Math.round(length || 128),4),512);
+        length = Math.min(Math.max(Math.round(length || 128),4),1024);
 
         this.arr = Array.from({length}, (v, i) => i);
 

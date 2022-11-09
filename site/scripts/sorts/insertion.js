@@ -46,7 +46,7 @@ sorts.binary_insertion = {
 
             let i = cur_i-1;
 
-            sort.set_delay(200/Math.log2(sort.arr.length));
+            sort.set_delay(150/Math.log2(sort.arr.length));
 
             let search_i = await binary_search(0,cur_i,cur_i);
 
