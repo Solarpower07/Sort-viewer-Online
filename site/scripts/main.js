@@ -695,8 +695,6 @@ class Sort {
 
                 await this.write.randomize();
 
-                this.set_stable_start();
-
                 break;
 
             case 8: //Bit reversal
@@ -755,6 +753,8 @@ class Sort {
 
         this.stop();
 
+        this.set_stable_start();
+
         this.values.reset();
         
     }
@@ -767,11 +767,13 @@ class Sort {
 
         this.arr.verifying = true;
 
+        this.arr.stable = true;
+
         this.arr.verified = true;
 
         for (let i = 0; i < this.arr.length-1; i++) {
             if (await this.compareind.greater(i,i+1)) this.arr.verified = false;
-            // if (Number(this.arr[i]) == Number(this.arr[i+1]) && this.arr[i].stable_ind >= this.arr[i+1].stable_ind) stable = false;
+            if (this.arr.stable && Number(this.arr[i]) == Number(this.arr[i+1]) && this.arr[i].stable_ind >= this.arr[i+1].stable_ind) this.arr.stable = false;
         }
 
         await this.wait_delay();

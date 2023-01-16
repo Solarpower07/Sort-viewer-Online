@@ -124,7 +124,7 @@
                             
                                 if (arr.verifying) {
                                 
-                                    elements[i]["background-color"] = (arr.verified) ? `rgb(0, ${color}, 0)` : `rgb(${color}, 0, 0)`;
+                                    elements[i]["background-color"] = (arr.verified) ? (arr.stable ? `rgb(0, ${color}, 0)` : `rgb(${color}, ${color}, 0)`) : `rgb(${color}, 0, 0)`;
                                 
                                 }
                                 else {
@@ -164,8 +164,9 @@
                     document.getElementById(`sort`).innerHTML = '';
 
                     setTimeout(() => {
-                        document.getElementById(`sort`).innerHTML = (slot[0].name + (slot[0].base ? `, Base ${slot[0].base}` : ''));
-                        sort.initiate(slot[0].run, {base: slot[0].base});
+                        let base = slot[2] || slot[0].base;
+                        document.getElementById(`sort`).innerHTML = (slot[0].name + (base ? `, Base ${base}` : ''));
+                        sort.initiate(slot[0].run, {base});
                     },1000)
 
                 });

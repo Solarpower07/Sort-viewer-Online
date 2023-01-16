@@ -8,6 +8,7 @@ let scripts = {
         [sorts.oddeven,256], //Odd-even
         [sorts.comb,1024], //Comb
         [sorts.quick,1024], //Quick
+        [sorts.stable_quick,1024], //Quick
     ],
     selection: [
         [sorts.selection,256], //Selection
@@ -24,13 +25,15 @@ let scripts = {
     ],
     merge: [
         [sorts.merge,1024], //Merge
-        // [sorts.bottomup_merge,256], //Bottom-up Merge
+        [sorts.bottomup_merge,1024], //Bottom-up Merge
     ],
     distribute: [
         [sorts.counting,1024], //Counting
         [sorts.pigeonhole,1024], //Pigeonhole
-        [sorts.radix_lsd,1024], //Radix LSD
-        [sorts.radix_msd,1024], //Radix MSD
+        [sorts.radix_lsd,1024,4], //Radix LSD base 4
+        [sorts.radix_lsd,1024,16], //Radix LSD base 16
+        [sorts.radix_msd,1024,4], //Radix MSD base 4
+        [sorts.radix_msd,1024,16], //Radix MSD base 16
     ],
     impractical: [
         [sorts.pancake,128], //Pancake
