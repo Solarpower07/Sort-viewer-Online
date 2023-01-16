@@ -193,6 +193,122 @@ sorts.quick = {
     name: "Quick Sort, L/R Pointers"
 }
 
+sorts.quick_random = {
+    run: async function () {
+
+        sort.set_delay(20000/(sort.arr.length*Math.log2(sort.arr.length)));
+
+        async function partition (l,r) {
+        
+            let pivot = Math.floor(Math.random() * (r - l + 1));
+        
+            let lpoint = l;
+        
+            let rpoint = r;
+        
+            while (lpoint <= rpoint) {
+            
+                //Find out-of-place elements
+                while (await sort.compareind.less(lpoint,pivot)) {
+                    lpoint++;
+                }
+                while (await sort.compareind.greater(rpoint,pivot)) {
+                    rpoint--;
+                }
+            
+                if (lpoint <= rpoint) {
+                
+                    await sort.write.swap(lpoint,rpoint);
+
+                    if (lpoint === pivot) pivot = rpoint;
+
+                    else if (rpoint === pivot) pivot = lpoint;
+                
+                    lpoint++;
+                    rpoint--;
+                }
+
+            }
+        
+            return lpoint;
+        
+        }
+
+        async function recursive (l,r) {
+        
+            let i = await partition(l,r);
+        
+            if (l < i - 1) {
+                await recursive(l,i-1);
+            }
+        
+            if (r > i) {
+                await recursive(i,r);
+            }
+        
+        }
+
+        await recursive(0, sort.arr.length - 1);
+
+    },
+    name: "Quick Sort, L/R Pointers, Random Pivot"
+}
+
+sorts.stable_quick = {
+    run: async function () {
+
+        sort.set_delay(2000/(sort.arr.length*Math.log2(sort.arr.length)));
+
+        async function partition (l,r) {
+        
+            let pivot = Math.floor((r + l) / 2);
+
+            let aux_l = [], aux_r = [];
+
+            for (let i = l; i <= r; i++) {
+
+                if (i == pivot) continue;
+
+                let v = sort.arr[i];
+
+                if (i < pivot && await sort.compareind.less_eq(i, pivot)) aux_l.push(v);
+                else if (i > pivot && await sort.compareind.less(i,pivot)) aux_l.push(v);
+                else aux_r.push(v);
+
+                sort.values.writes_aux++;
+
+            }
+
+            let combined = [...aux_l,sort.arr[pivot],...aux_r];
+
+            for (let i = 0; i < combined.length; i++) {
+                await sort.write.write(l+i,combined[i]);
+            }
+        
+            return l + aux_l.length;
+        
+        }
+
+        async function recursive (l,r) {
+        
+            let i = await partition(l,r);
+        
+            if (l < i - 1) {
+                await recursive(l,i);
+            }
+        
+            if (r > i) {
+                await recursive(i+1,r);
+            }
+        
+        }
+
+        await recursive(0, sort.arr.length - 1);
+
+    },
+    name: "Stable Quick Sort"
+}
+
 sorts.oddeven = {
     run: async function () {
 

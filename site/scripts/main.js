@@ -1,3 +1,7 @@
+class Sort_num extends Number {
+    stable_ind = 0;
+}
+
 class Sort {
 
     arr;
@@ -56,6 +60,7 @@ class Sort {
         writes: 0,
         writes_aux: 0,
         accesses: 0,
+        delay: 0,
         reset: function () {
             for (const v of Object.keys(this)) {
                 if (!["parent","reset","temp","temp_reset","reload"].includes(v)) this[v] = 0;
@@ -485,12 +490,21 @@ class Sort {
         
             }
             
+        },
+        rotate: async function (start,end,amount) {
+        
+            await this.invert(start,end);
+            
+            await this.invert(start,start + amount);
+            
+            await this.invert(start + amount,end);
+
         }
     }
 
     constructor (length, update, finish_func) {
 
-        length = Math.min(Math.max(Math.round(length || 128),4),512);
+        length = Math.min(Math.max(Math.round(length || 128),4),1024);
 
         this.arr = Array.from({length}, (v, i) => i);
 
@@ -542,6 +556,25 @@ class Sort {
         this.oscillator[1].type = oscillator_wave;
 
         this.oscillator[1].start();
+
+    }
+
+    set_stable_start = function () {
+
+        let stable_ind = {};
+
+        for (let i = 0; i < this.arr.length; i++) {
+
+            if (stable_ind[String(this.arr[i])] == undefined) stable_ind[String(this.arr[i])] = 0;
+
+            this.arr[i] = new Sort_num(this.arr[i]);
+            this.arr[i].stable_ind = stable_ind[String(this.arr[i])];
+
+            stable_ind[String(this.arr[i])]++;
+
+            this.update(i);
+
+        }
 
     }
 
@@ -631,22 +664,9 @@ class Sort {
                 break;
 
             case 5: //Final radix pass
-
-                this.set_delay(1250/this.arr.length);
-
-                let base = Math.floor(this.arr.length / 2);
-    
-                let buckets = Array.from({length: base}, () => {return []});
-        
-                for (let i = 0; i < this.arr.length; i++) {
-                    buckets[Math.floor((await this.get(i))) % base].push(this.arr[i]);
-                    this.values.writes_aux++;
-                }
-    
-                const combined = buckets.reduce((a,b) => {return a.concat(b)});
                 
-                for (let i = 0; i < combined.length; i++) {
-                    await this.write.write(i,combined[i]);
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,(i % 2 == 0 ? Math.ceil(i/2) : Math.ceil(i/2) + Math.floor(this.arr.length/2)));
                 }
 
                 break;
@@ -668,7 +688,7 @@ class Sort {
                 let bucket_size = Math.ceil(this.arr.length/16);
                 
                 for (let i = 0; i < this.arr.length; i++) {
-                    await this.write.write(i,(Math.floor(i/bucket_size)+1)*bucket_size);
+                    await this.write.write(i,((Math.floor(i/bucket_size)+1)*bucket_size)-1);
                 }
 
                 this.set_delay(1500 / this.arr.length);
@@ -676,9 +696,64 @@ class Sort {
                 await this.write.randomize();
 
                 break;
+
+            case 8: //Bit reversal
+
+                this.set_delay(1500/this.arr.length);
+
+                let digits = Math.ceil(Math.log2(this.arr.length));
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,parseInt(this.arr[i].toString(2).padStart(digits,'0').split('').reverse().join(''),2));
+                }
+
+                break;
+
+            case 9: //Final merge
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,((2 * i) % this.arr.length) + Math.floor(i/(this.arr.length/2)));
+                }
+
+                break;
+
+            case 10: //Sawtooth
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,((4 * i) % this.arr.length) + Math.floor(i/(this.arr.length/4)));
+                }
+
+                break;
+
+            case 11: //Final merge of reversed array
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    await this.write.write(i,(i + Math.ceil(this.arr.length/2)) % this.arr.length);
+                }
+
+                break;
+
+            case 12: //Reversed final merge
+
+                let arr = Array.from({length: this.arr.length});
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    arr[i] = ((2 * i) % this.arr.length) + Math.floor(i/(this.arr.length/2));
+                }
+
+                arr.reverse();
+                
+                for (let i = 0; i < this.arr.length; i++) {
+                    this.values.writes_aux++;
+                    await this.write.write(i,arr[i]);
+                }
+
+                break;
         }
 
         this.stop();
+
+        this.set_stable_start();
 
         this.values.reset();
         
@@ -688,23 +763,26 @@ class Sort {
 
         this.values.temp_reset();
 
-        this.set_delay(750 / this.arr.length);
+        this.set_delay(500 / this.arr.length);
 
         this.arr.verifying = true;
+
+        this.arr.stable = true;
 
         this.arr.verified = true;
 
         for (let i = 0; i < this.arr.length-1; i++) {
             if (await this.compareind.greater(i,i+1)) this.arr.verified = false;
+            if (this.arr.stable && Number(this.arr[i]) == Number(this.arr[i+1]) && this.arr[i].stable_ind >= this.arr[i+1].stable_ind) this.arr.stable = false;
         }
 
         await this.wait_delay();
 
+        this.stop();
+
         if (!this.arr.verified) alert("Sort failed!");
         
         this.arr.verifying = false;
-
-        this.stop();
 
         this.values.reload();
 

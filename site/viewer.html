@@ -60,7 +60,7 @@
 
             const shuffle = (params.get('shuffle') && !Number.isNaN(params.get('shuffle'))) ? Number(params.get('shuffle')) : 0;
 
-            // const script = [[sorts.maxheap,128]], shuffle = 3;
+            // const script = [[sorts.stable_quick,256]], shuffle = 6;
 
             const sort_container = document.getElementById('sort_container');
 
@@ -106,29 +106,31 @@
                     
                         return async (i) => {
                         
-                            value_spots.compares.innerHTML = values.compares;
-                            value_spots.swaps.innerHTML = values.swaps;
-                            value_spots.reversals.innerHTML = values.reversals;
-                            value_spots.writes.innerHTML = values.writes;
-                            value_spots.writes_aux.innerHTML = values.writes_aux;
+                            value_spots.compares.textContent = values.compares;
+                            value_spots.swaps.textContent = values.swaps;
+                            value_spots.reversals.textContent = values.reversals;
+                            value_spots.writes.textContent = values.writes;
+                            value_spots.writes_aux.textContent = values.writes_aux;
 
-                            let est_time = ((values.compares * 0.0000028) + ((values.writes - (values.swaps * 2)) * 0.0000021) + (values.writes_aux * 0.0000017) + (values.accesses * 0.0000011) + (values.swaps * 0.0000038)) * 0.25;
+                            let est_time = ((values.compares * 0.000000106) + ((values.writes - (values.swaps * 2)) * 0.000000118) + (values.writes_aux * 0.000000125) + (values.accesses * 0.000000045) + (values.swaps * 0.00000040) + (values.delay / 1)) * 1;
 
-                            value_spots.time.innerHTML = est_time < 1 ? (est_time*1000).toFixed(3) + 'ms' : est_time.toFixed(3) + 's';
-                        
+                            value_spots.time.textContent = est_time < 1 ? (est_time*1000).toFixed(3) + 'ms' : est_time.toFixed(3) + 's';
+
                             if (typeof i === "number") {
                             
                                 const v = arr[i];
+                                
+                                let color = (255 - ((v.stable_ind || 0) * (3250 / arr.length)));
                             
                                 if (arr.verifying) {
                                 
-                                    elements[i]["background-color"] = (arr.verified) ? "#0f0" : "#f00";
+                                    elements[i]["background-color"] = (arr.verified) ? (arr.stable ? `rgb(0, ${color}, 0)` : `rgb(${color}, ${color}, 0)`) : `rgb(${color}, 0, 0)`;
                                 
                                 }
                                 else {
-                                
                                     elements[i].height = ((v+1) / arr.length) * 100 + 'vh';
-                                    elements[i]["background-color"] = (arr.pointers[i]) ? "#f00" : "#fff";
+                                    elements[i]["background-color"] = (arr.pointers[i]) ? "#f00" : `rgb(${color}, ${color}, ${color})`;
+                                    // elements[i]["background-color"] = (arr.pointers[i]) ? "#f00" : "#fff";
                                 
                                 }
                             
@@ -143,11 +145,8 @@
                         switch (event.code) {
 
                             case "Enter":
-                                sort.end_sort();
-                                break;
-
                             case "NumpadEnter":
-                                sort.end_sort();
+                                if (sort.running_sort) sort.end_sort();
                                 break;
 
                             case "Space":
@@ -165,8 +164,9 @@
                     document.getElementById(`sort`).innerHTML = '';
 
                     setTimeout(() => {
-                        document.getElementById(`sort`).innerHTML = (slot[0].name + (slot[0].base ? `, Base ${slot[0].base}` : ''));
-                        sort.initiate(slot[0].run, {base: slot[0].base});
+                        let base = slot[2] || slot[0].base;
+                        document.getElementById(`sort`).innerHTML = (slot[0].name + (base ? `, Base ${base}` : ''));
+                        sort.initiate(slot[0].run, {base});
                     },1000)
 
                 });

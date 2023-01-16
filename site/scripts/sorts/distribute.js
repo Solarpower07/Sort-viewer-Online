@@ -89,7 +89,7 @@ sorts.pigeonhole = {
 sorts.radix_lsd = {
     run: async function (base) {
 
-        sort.set_delay(3000/sort.arr.length);
+        sort.set_delay(2000/sort.arr.length);
 
         let max = 0, decimal = false;
 
@@ -154,7 +154,7 @@ sorts.radix_lsd = {
 sorts.radix_msd = {
     run: async function (base) {
 
-        sort.set_delay(3000/sort.arr.length);
+        sort.set_delay(2000/sort.arr.length);
 
         let max = 0, decimal = false;
 

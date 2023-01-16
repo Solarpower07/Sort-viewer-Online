@@ -1,39 +1,43 @@
 let scripts = {
     exchange: [
-        [sorts.bubble,128], //Bubble
-        [sorts.optimized_bubble,128], //Optimized Bubble
-        [sorts.cocktail,128], //Cocktail
-        [sorts.optimized_cocktail,128], //Optimized Cocktail
+        [sorts.bubble,256], //Bubble
+        [sorts.optimized_bubble,256], //Optimized Bubble
+        [sorts.cocktail,256], //Cocktail
+        [sorts.optimized_cocktail,256], //Optimized Cocktail
         [sorts.gnome,128], //Gnome
-        [sorts.oddeven,128], //Odd-even
-        [sorts.comb,256], //Comb
-        [sorts.quick,256], //Quick
+        [sorts.oddeven,256], //Odd-even
+        [sorts.comb,1024], //Comb
+        [sorts.quick,1024], //Quick
+        [sorts.stable_quick,1024], //Quick
     ],
     selection: [
-        [sorts.selection,128], //Selection
+        [sorts.selection,256], //Selection
         [sorts.cycle,128], //Cycle
-        [sorts.pigeonhole_cycle,256], //Pigeonhole Cycle
-        [sorts.maxheap,256], //Max heap
-        [sorts.minheap,256], //Min heap
+        [sorts.pigeonhole_cycle,512], //Pigeonhole Cycle
+        [sorts.maxheap,1024], //Max heap
+        [sorts.minheap,1024], //Min heap
     ],
     insertion: [
-        [sorts.insertion,128], //Insertion
-        [sorts.binary_insertion,128], //Binary Insertion
-        [sorts.shell,256], //Shell
+        [sorts.insertion,256], //Insertion
+        [sorts.binary_insertion,256], //Binary Insertion
+        [sorts.shell,512], //Shell
         // [sorts.binary_shell,128], //Binary Shell
     ],
     merge: [
-        [sorts.merge,256], //Merge
-        // [sorts.bottomup_merge,256], //Bottom-up Merge
+        [sorts.merge,1024], //Merge
+        [sorts.bottomup_merge,1024], //Bottom-up Merge
     ],
     distribute: [
-        [sorts.counting,256], //Counting
-        [sorts.pigeonhole,256], //Pigeonhole
-        [sorts.radix_lsd,256], //Radix LSD
-        [sorts.radix_msd,256], //Radix MSD
+        [sorts.counting,1024], //Counting
+        [sorts.pigeonhole,1024], //Pigeonhole
+        [sorts.radix_lsd,1024,4], //Radix LSD base 4
+        [sorts.radix_lsd,1024,16], //Radix LSD base 16
+        [sorts.radix_msd,1024,4], //Radix MSD base 4
+        [sorts.radix_msd,1024,16], //Radix MSD base 16
     ],
     impractical: [
         [sorts.pancake,128], //Pancake
+        [sorts.time,512], //Pancake
         [sorts.stooge,64], //Stooge
         [sorts.bogo,6], //Bogo
     ]
